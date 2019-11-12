@@ -21,4 +21,8 @@ from app import views
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('users/', views.userList.as_view()),
+    path('users/<int:pk>/', views.userDetail.as_view()),
+    path('buckets/', views.bucketList.as_view()),
+    path('devices/', views.deviceList.as_view()),
+    path('files/', views.fileList.as_view())
 ]
