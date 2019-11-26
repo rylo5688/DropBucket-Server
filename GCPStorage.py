@@ -57,8 +57,6 @@ class GCPStorage:
 		print('Blob {} deleted'.format(file.relative_path))
 
 
-
-
 class File: # This is temporary
 	def __init__(self, relative_path):
 		self.relative_path = relative_path
@@ -69,8 +67,8 @@ relative_path = "testDir/test.txt"
 file = File(relative_path)
 
 gcpStorage = GCPStorage("thomas"); # These names need to be unique
-gcpStorage.upload(file)
+# gcpStorage.upload(file)
 # gcpStorage.delete(file)
 # gcpStorage.download(relative_path)
-gcpStorage.list()
+# gcpStorage.list()
 # Let's say names are dropbucket-<username>
