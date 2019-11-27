@@ -16,8 +16,6 @@ from . serializers import fileSerializer
 # Create your views here.
 class userList(APIView):
 
-    
-
     def get(self, request):
         user = User.objects.all()
         serializer = userSerializer(user, many=True)
