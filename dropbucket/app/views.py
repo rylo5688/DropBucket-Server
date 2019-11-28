@@ -58,7 +58,6 @@ class userDetail(APIView):
             return User.objects.get(pk=pk)
         except User.DoesNotExist:
             raise get_object_or_404
-
     def get(self, request, pk, format=None):
         snippet = self.get_object(pk)
         serializer = userSerializer(snippet)
