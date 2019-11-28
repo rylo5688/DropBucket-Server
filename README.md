@@ -5,7 +5,13 @@
 	* An example would be `virtualenv ~/.envs/dropbucket`
 * Activate the virtual environment `source <path to environment>/bin/activate`
 * Install packages `pip3 install --requirement requirements.txt`
-* Setup database `python3 dropbucket/manage.py migrate`
+
+* Setup database
+```
+python3 dropbucket/manage.py makemigrations app
+python3 dropbucket/manage.py migrate
+```
+
 
 ## Starting the server
 ```
@@ -14,20 +20,58 @@ python3 dropbucket/manage.py runserver <port>
 
 ## Endpoints
 
-### GET `/users`
 
-### POST `/users`
+
+
+### POST `/users/signup`
 
 Create a user
 
 **POST body**
 ```json
 {
-	"access_token":"a",
-	"refresh_token":"b",
-	"bucket_name":"c"
+	"username":"name",
+	"password":"pass123",
 }
 ```
+
+**Response**
+```json
+{
+	"message":"msg"
+}
+```
+
+**Status Code**
+* `201`: Successfully created the new account
+* `400`: Incorrectly formatted body
+* `409`: User already has an account
+
+
+
+### POST `/users/signin`
+
+Sign in as a user
+
+**POST body**
+```json
+{
+	"username":"name",
+	"password":"pass123",
+}
+```
+
+**Response**
+```json
+{
+	"message":"msg"
+}
+```
+
+**Status Code**
+* `200`: Successfully signed in (username and password match)
+* `400`: Incorrectly formatted body
+* `409`: Username or password is incorrect
 
 
 ## Query the database manually

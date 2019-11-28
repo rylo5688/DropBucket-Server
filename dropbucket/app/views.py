@@ -12,21 +12,45 @@ from . serializers import userSerializer
 from . serializers import bucketSerializer
 from . serializers import deviceSerializer
 from . serializers import fileSerializer
+import bcrypt
 
 # Create your views here.
-class userList(APIView):
-
-    def get(self, request):
-        user = User.objects.all()
-        serializer = userSerializer(user, many=True)
-        return Response(serializer.data)
-
+class userSignUp(APIView):
     def post(self, request):
+        # TODO: Need to make this HTTPS so we aren't sending plaintext passwords
         serializer = userSerializer(data=request.data)
         if serializer.is_valid():
-            serializer.save()
-            return Response(serializer.data, status=status.HTTP_201_CREATED)
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+            # Check if this User already exists before creating a new entry
+            querySet = User.objects.filter(username=request.data['username'])
+            if len(querySet) == 0:
+                # User doesn't exist, so create an entry
+                serializer.save()
+                return Response({"message": "User successfully created! You can now sign in."}, status=status.HTTP_201_CREATED)
+
+            # Let the client know that the user already exists by telling them there is a conflict
+            return Response({"message": "User already exists."}, status=status.HTTP_409_CONFLICT)
+
+        return Response({"message": "Incorrectly formatted request body."}, status=status.HTTP_400_BAD_REQUEST)
+
+class userSignIn(APIView):
+    def post(self, request):
+        # TODO: Need this to contain device information so we can add it to the database
+        serializer = userSerializer(data=request.data)
+        if serializer.is_valid():
+            # Look for a matching user and check to see if the correct password was given.
+            # TODO: Give them a session key to the client so they don't need to log in each time
+            querySet = User.objects.filter(username=request.data['username'])
+            if len(querySet) == 0: # User doesn't exist, so return error
+                return Response({"message": "User doesn't exist. Please create an account."}, status=status.HTTP_409_CONFLICT)
+
+            # Check if the passwords match
+            match = bcrypt.checkpw(bytes(request.data["password"], "utf-8"), bytes(querySet[0].password, "utf-8"))
+            if match:
+                return Response({"message": "Sign in successful"}, status=status.HTTP_200_OK)
+            else:
+                return Response({"message": "Incorrect password"}, status=status.HTTP_409_CONFLICT)
+
+        return Response({"message": "Incorrectly formatted request body."}, status=status.HTTP_400_BAD_REQUEST)
 
 class userDetail(APIView):
     def get_object(self, pk):
@@ -34,7 +58,6 @@ class userDetail(APIView):
             return User.objects.get(pk=pk)
         except User.DoesNotExist:
             raise get_object_or_404
-        
     def get(self, request, pk, format=None):
         snippet = self.get_object(pk)
         serializer = userSerializer(snippet)
