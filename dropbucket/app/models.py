@@ -2,9 +2,8 @@ from django.db import models
 
 # Create your models here.
 class User(models.Model):
-    access_token = models.CharField(max_length=255)
-    refresh_token = models.CharField(max_length=255)
-    #expiration=models.IntegerField() -- it's included in response but we don't necessarily need it
+    username = models.CharField(max_length=255)
+    password = models.CharField(max_length=255)
 
 class Bucket(models.Model):
     user_id = models.ForeignKey(User, to_field='id', on_delete=models.CASCADE)
