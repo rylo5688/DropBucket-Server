@@ -6,7 +6,11 @@
 * Activate the virtual environment `source <path to environment>/bin/activate`
 * Install packages `pip3 install --requirement requirements.txt`
 
-* Setup database `python3 dropbucket/manage.py makemigrations app; python3 dropbucket/manage.py migrate`
+* Setup database
+```
+python3 dropbucket/manage.py makemigrations app
+python3 dropbucket/manage.py migrate
+```
 
 
 ## Starting the server
