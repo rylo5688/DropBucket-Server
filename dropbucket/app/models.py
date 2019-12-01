@@ -16,10 +16,5 @@ class Device(models.Model):
 
 class File(models.Model):
     user_id = models.ForeignKey(User, to_field='id', on_delete=models.CASCADE)
-    filename = models.CharField(max_length=255)
-    path = models.CharField(max_length=4096)
-    gcp_URL = models.CharField(max_length=2000)
-    md5 = models.CharField(max_length=32)
-
-
-
+    file = models.FileField(blank=False)
+    relative_path = models.CharField(max_length=4096)
