@@ -21,13 +21,15 @@ from rest_framework import routers
 
 router = routers.DefaultRouter()
 router.register('users', views.userView)
+router.register('buckets', views.bucketView)
+router.register('devices', views.deviceView)
+
+
+
 urlpatterns = [
     path('admin/', admin.site.urls),
-    path('users/signup', views.userSignUp.as_view()),
-    path('users/signin', views.userSignIn.as_view()),
     path('', include(router.urls)),
-    # path('users/', views.userDetail.as_view()),
-    path('buckets/', views.bucketList.as_view()),
-    path('devices/', views.deviceList.as_view()),
-    path('users/<int:pk>/file/', views.fileList.as_view())
+    path('users/signup/', views.userSignUp.as_view()),
+    path('users/signin/', views.userSignIn.as_view()),
+    path('users/<int:pk>/file/', views.fileDetail.as_view())
 ]

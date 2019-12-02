@@ -76,10 +76,17 @@ class userView(viewsets.ModelViewSet):
     queryset = User.objects.all()
     serializer_class = userSerializer
 
+class bucketView(viewsets.ModelViewSet):
+    queryset =Bucket.objects.all()
+    serializer_class = bucketSerializer
+
+class deviceView(viewsets.ModelViewSet):
+    queryset = Device.objects.all()
+    serializer_class = deviceSerializer
 
 
 # could break these out into fileUpload, fileDownload, and fileDelete
-class fileList(APIView):
+class fileDetail(APIView):
 
     # POST /file
     # Uploads a file to GCP
@@ -155,31 +162,3 @@ class fileList(APIView):
                 return Response(file_serializer.data, status=status.HTTP_201_CREATED)
         else:
                 return Response(file_serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-
-class bucketList(APIView):
-    def get(self, request):
-        bucket = Bucket.objects.all()
-        serializer = bucketSerializer(bucket, many=True)
-        return Response(serializer.data)
-
-    def post(self, request):
-        serializer = bucketSerializer(data=request.data)
-        if serializer.is_valid():
-            serializer.save()
-            return Response(serializer.data, status=status.HTTP_201_CREATED)
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-
-
-class deviceList(APIView):
-    def get(self, request):
-        device = Device.objects.all()
-        serializer = deviceSerializer(device, many=True)
-        return Response(serializer.data)
-
-    def post(self, request):
-        serializer = deviceSerializer(data=request.data)
-        if serializer.is_valid():
-            serializer.save()
-            return Response(serializer.data, status=status.HTTP_201_CREATED)
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-
