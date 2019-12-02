@@ -1,4 +1,5 @@
 from django.db import models
+from . storage import FileStorage
 
 # Create your models here.
 class User(models.Model):
@@ -16,5 +17,5 @@ class Device(models.Model):
 
 class File(models.Model):
     user_id = models.ForeignKey(User, to_field='id', on_delete=models.CASCADE)
-    file = models.FileField(blank=False)
+    file = models.FileField(blank=False, storage=FileStorage())
     relative_path = models.CharField(max_length=4096)

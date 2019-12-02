@@ -44,18 +44,17 @@ class GCPStorage:
 		Returns:
 			bool: The return value. True for success, False otherwise.
 		"""
-		# try:
-		print(file)
-		blob = self.gcp_bucket.blob(file.relative_path)
+		try:
+			blob = self.gcp_bucket.blob(file.relative_path)
 
-		# Upload temporary local file to bucket
-		blob.upload_from_filename(file.relative_path)
+			# Upload temporary local file to bucket
+			blob.upload_from_filename(file.relative_path)
 
-		print('File {} uploaded to bucket {}'.format(file.relative_path, self.bucket_name))
+			print('File {} uploaded to bucket {}'.format(file.relative_path, self.bucket_name))
 
-		return True
-		# except:
-		# 	return False
+			return True
+		except:
+			return False
 
 	def download(self, file):
 		"""

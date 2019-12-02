@@ -19,6 +19,7 @@ from . import GCPStorage
 from tempfile import TemporaryFile
 import bcrypt
 import shutil
+import os
 
 # Create your views here.
 class userSignUp(APIView):
@@ -52,10 +53,11 @@ class userSignIn(APIView):
             # Check if the passwords match
             match = bcrypt.checkpw(bytes(request.data["password"], "utf-8"), bytes(querySet[0].password, "utf-8"))
             if match:
-                # Give user session key
+                # Give user session key set to expire in 30 seconds
                 u = User.objects.get(username=request.data['username'])
                 request.session['user_id'] = u.id
-                print(request.session.items())
+                request.session.set_expiry(86400)
+                
                 return Response({"message": "Sign in successful"}, status=status.HTTP_200_OK)
             else:
                 return Response({"message": "Incorrect password"}, status=status.HTTP_409_CONFLICT)
@@ -75,6 +77,7 @@ class userView(viewsets.ModelViewSet):
     serializer_class = userSerializer
 
 
+
 # could break these out into fileUpload, fileDownload, and fileDelete
 class fileList(APIView):
 
@@ -82,51 +85,73 @@ class fileList(APIView):
     # Uploads a file to GCP
     # TODO: Delete file_serializer associated instance/find a way to upload without creating in the first place
     def post(self, request, *args, **kwargs):
-        # Something with session (?)
+        # Django magic with session (?)
         u_id = request.session['user_id']
-        # Add above info to request data and set relative path using name (TODO: change relative path from just using name)
-        request.data.update({"user_id": u_id, "relative_path": request.FILES['file'].name})
+        
+        # Add user_id and relative path to request data  (TODO: change relative path from just using name)
+        filename = request.FILES['file'].name
+        request.data.update({"user_id": u_id, "relative_path": filename})
         file_serializer = fileWriteSerializer(data=request.data)
 
         if file_serializer.is_valid(): 
                 file_serializer.save()
+
                 # Create or access bucket for user
-                g = GCPStorage.GCPStorage("matt-test")        # change to u_id at some point
+                g = GCPStorage.GCPStorage(u_id)
                 g.upload(file_serializer.save())
+
+                # Delete db entry and local copy
+                File.objects.all().delete()
+                os.remove(filename)
+
                 return Response(file_serializer.data, status=status.HTTP_201_CREATED)
         else:
                 return Response(file_serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
     # GET /file
     def get(self, request, *args, **kwargs):
-        # Something with session (?)
+        # Django magic with session (?)
         u_id = request.session['user_id']
-        # Add above info to request data and set relative path using name (TODO: change relative path from just using name)
+
+        # Append user_id to file
         request.data.update({"user_id": u_id})
         file_serializer = fileReadSerializer(data=request.data)
 
         if file_serializer.is_valid(): 
                 file_serializer.save()
+
                 # Create or access bucket for user
-                g = GCPStorage.GCPStorage("matt-test")      # change to u_id at some point
+                g = GCPStorage.GCPStorage(u_id)
                 g.download(file_serializer.save())
+
+                # Delete db entry
+                File.objects.all().delete()
+
                 return Response(file_serializer.data, status=status.HTTP_201_CREATED)
         else:
                 return Response(file_serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
     # DELETE /file
     def delete(self, request, *args, **kwargs):
-        # Something with session (?)
+        # Django magic with session (?)
         u_id = request.session['user_id']
-        # Add above info to request data and set relative path using name (TODO: change relative path from just using name)
-        request.data.update({"user_id": u_id, "relative_path": request.FILES['file'].name})
+
+        # Add user_id and relative path to request data  (TODO: change relative path from just using name)
+        filename = request.FILES['file'].name
+        request.data.update({"user_id": u_id, "relative_path": filename})
         file_serializer = fileWriteSerializer(data=request.data)
 
         if file_serializer.is_valid(): 
                 file_serializer.save()
+
                 # Create or access bucket for user
-                g = GCPStorage.GCPStorage("matt-test")      # change to u_id at some point
+                g = GCPStorage.GCPStorage(u_id)
                 g.delete(file_serializer.save())
+
+                # Delete db entry and local copy
+                File.objects.all().delete()
+                os.remove(filename)
+
                 return Response(file_serializer.data, status=status.HTTP_201_CREATED)
         else:
                 return Response(file_serializer.errors, status=status.HTTP_400_BAD_REQUEST)
