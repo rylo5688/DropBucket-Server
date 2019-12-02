@@ -25,7 +25,18 @@ class deviceSerializer(serializers.ModelSerializer):
         model = Device
         fields = ['id','user_id', 'sync']
 
-class fileSerializer(serializers.ModelSerializer):
+class fileWriteSerializer(serializers.ModelSerializer):
     class Meta:
         model = File
-        fields = ['id','user_id', 'filename', 'path', 'gcp_URL', 'md5']
+        fields = ['id','user_id', 'file', 'relative_path']
+
+    def create(self, validated_data):
+        return File(**validated_data)
+
+class fileReadSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = File
+        fields = ['id','user_id', 'relative_path']
+
+    def create(self, validated_data):
+        return File(**validated_data)

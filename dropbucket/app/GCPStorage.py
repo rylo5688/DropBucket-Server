@@ -69,14 +69,14 @@ class GCPStorage:
 			string: Path to a the file locally (we will download it to a temporary file)
 		"""
 		try:
-			blob = self.gcp_bucket.blob(relative_path)
+			blob = self.gcp_bucket.blob(file.relative_path)
 
 			# Check if temp folder exists, if not create it
 			if not os.path.exists(TEMP_DIR):
 				os.makedirs(TEMP_DIR)
 
 			# Create a hash of the bucket_name + relative_path to use as a temporary filename
-			filename = md5(bytes(self.bucket_name + relative_path, "utf-8")).hexdigest()
+			filename = md5(bytes(self.bucket_name + file.relative_path, "utf-8")).hexdigest()
 			pathToFile = "{}/{}".format(TEMP_DIR, filename)
 			fp = open(pathToFile, "wb+")
 			fileData = blob.download_to_file(fp)
