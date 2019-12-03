@@ -23,7 +23,7 @@ class bucketSerializer(serializers.ModelSerializer):
 class deviceSerializer(serializers.ModelSerializer):
     class Meta:
         model = Device
-        fields = ['id','user_id', 'sync']
+        fields = ['id','user_id', 'sync', 'device_id']
 
 class fileWriteSerializer(serializers.ModelSerializer):
     class Meta:

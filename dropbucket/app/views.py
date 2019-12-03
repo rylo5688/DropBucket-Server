@@ -42,8 +42,9 @@ class userSignUp(APIView):
 class userSignIn(APIView):
     def post(self, request):
         # TODO: Need this to contain device information so we can add it to the database
-        serializer = userSerializer(data=request.data)
-        if serializer.is_valid():
+        user_serializer = userSerializer(data=request.data)
+
+        if user_serializer.is_valid():
             # Look for a matching user and check to see if the correct password was given.
             # TODO: Give them a session key to the client so they don't need to log in each time
             querySet = User.objects.filter(username=request.data['username'])
@@ -53,11 +54,22 @@ class userSignIn(APIView):
             # Check if the passwords match
             match = bcrypt.checkpw(bytes(request.data["password"], "utf-8"), bytes(querySet[0].password, "utf-8"))
             if match:
-                # Give user session key set to expire in 30 seconds
                 u = User.objects.get(username=request.data['username'])
+                
+                # Update device table
+                device_id = request.data['device_id']
+                device_serializer = deviceSerializer(data={"user_id": u.id, "device_id": device_id, "sync": "true"})
+
+                if device_serializer.is_valid():
+                    device_serializer.save()
+                else:
+                    print(device_serializer.errors)
+                    return Response({"message": "Incorrectly formatted request bodasdasdy."}, status=status.HTTP_400_BAD_REQUEST)
+
+                # Give user session key set to expire in 1 day
                 request.session['user_id'] = u.id
                 request.session.set_expiry(86400)
-                
+
                 return Response({"message": "Sign in successful"}, status=status.HTTP_200_OK)
             else:
                 return Response({"message": "Incorrect password"}, status=status.HTTP_409_CONFLICT)
@@ -68,7 +80,7 @@ class userSignIn(APIView):
 # def logout(request):
 #     try:
 #         del request.session['user_id']
-#     except KeyError:
+#     except KeyError:d
 #         pass
 #     return HttpResponse("You're logged out.")
 
@@ -108,7 +120,8 @@ class fileDetail(APIView):
                 g.upload(file_serializer.save())
 
                 # Delete db entry and local copy
-                File.objects.all().delete()
+                print(File.objects.all()[0].relative_path)
+                #File.objects.all().delete()
                 os.remove(filename)
 
                 return Response(file_serializer.data, status=status.HTTP_201_CREATED)
