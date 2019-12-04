@@ -6,8 +6,6 @@ from rest_framework.response import Response
 from rest_framework import status, viewsets
 from rest_framework.parsers import MultiPartParser, FormParser
 from django.contrib import auth
-from django import forms
-from . forms import TempFileForm
 from . models import User
 from . models import Bucket
 from . models import Device
@@ -17,7 +15,6 @@ from . serializers import bucketSerializer
 from . serializers import deviceSerializer
 from . serializers import fileSerializer
 from . import GCPStorage
-from tempfile import TemporaryFile
 import bcrypt
 from shutil import copyfile
 import os
@@ -108,7 +105,7 @@ class fileDetail(APIView):
     # Uploads a file to GCP
     def post(self, request, *args, **kwargs):
 
-        # Django magic for session associated with device id
+        # Django magic for session associated with a device
         device_id = request.session['device_id']
 
         # Append user id to request data
@@ -118,17 +115,10 @@ class fileDetail(APIView):
         request.data.update({"user_id": u_id, "relative_path": filename})
         file_serializer = fileSerializer(data=request.data)
 
-
         if file_serializer.is_valid(): 
-            # Create entry in file table if not already there
-            try:
-                obj = File.objects.get(relative_path=filename)
-            except File.DoesNotExist:
-                file_serializer.save()
 
-            form = TempFileForm(request.POST, request.FILES)
+            # Copy request file to tempfile
             f = request.FILES['file']
-
             with open(filename, 'wb+') as tmp:
                 for chunk in f.chunks():
                     tmp.write(chunk)
@@ -137,22 +127,19 @@ class fileDetail(APIView):
                 g = GCPStorage.GCPStorage(u_id)
                 g.upload(filename)   
                 tmp.close()
-            
-            print(File.objects.all())
            
-            # Delete local copy
+            # Delete temp file
             os.remove(filename)  
 
             return Response(file_serializer.data, status=status.HTTP_201_CREATED)
         else:
-                return Response(file_serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+            return Response(file_serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
     # GET /file 
     def get(self, request, *args, **kwargs):
-        # Django magic for session associated with device id
+        # Django magic for session associated with a device
         device_id = request.session['device_id']
         
-
         # Append user_id and relative path to request data to be serialized
         relative_path = request.GET.get('relative_path')
         device = Device.objects.get(device_id=device_id)
@@ -161,14 +148,10 @@ class fileDetail(APIView):
         file_serializer = fileSerializer(data=request.data)
 
         if file_serializer.is_valid(): 
-            try:
-                obj = File.objects.get(relative_path=relative_path)
-            except File.DoesNotExist:
-                return Response(file_serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
             # Create or access bucket for user
             g = GCPStorage.GCPStorage(u_id)
-            g.download(obj)
+            g.download(relative_path)
 
             return Response(file_serializer.data, status=status.HTTP_201_CREATED)
         else:
@@ -176,33 +159,27 @@ class fileDetail(APIView):
 
     # DELETE /file
     def delete(self, request, *args, **kwargs):
-        # Django magic for session associated with device id
+        # Django magic for session associated with a device
         device_id = request.session['device_id']
         
-
         # Append user_id and relative path to request data to be serialized
         relative_path = request.GET.get('relative_path')
         device = Device.objects.get(device_id=device_id)
         u_id = device.pk
-        request.data.update({"user_id": u_id, "relative_path": relative_path})
-        file_serializer = fileSerializer(data=request.data)
+       
+        file_data = {"user_id": u_id, "relative_path": relative_path}
+        file_serializer = fileSerializer(data=file_data)
 
         if file_serializer.is_valid(): 
-            print('valid')
-            try:
-                obj = File.objects.get(relative_path=relative_path)
-            except File.DoesNotExist:
-                print('failurefailurefailure')
 
             # Create or access bucket for user
             g = GCPStorage.GCPStorage(u_id)
             g.delete(relative_path)
 
-            # Delete db entry and local copy
-            File.objects.get(relative_path=relative_path).delete()
-            os.remove(relative_path)
+            # # Delete db entry
+            # File.objects.get(relative_path=relative_path).delete()
 
             return Response(file_serializer.data, status=status.HTTP_201_CREATED)
         else:
-            print('invalid')
             return Response(file_serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        return Response('messages')

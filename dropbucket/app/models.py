@@ -18,5 +18,4 @@ class Device(models.Model):
 
 class File(models.Model):
     user_id = models.ForeignKey(User, to_field='id', on_delete=models.CASCADE)
-    file = models.FileField(blank=False, storage=FileStorage())
     relative_path = models.CharField(max_length=4096)
