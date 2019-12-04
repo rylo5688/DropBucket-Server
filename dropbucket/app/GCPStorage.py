@@ -33,7 +33,7 @@ class GCPStorage:
 			self.gcp_bucket = self.storage_client.get_bucket(self.bucket_name)
 
 
-	def upload(self, file):
+	def upload(self, relative_path):
 		"""
 		Source: https://cloud.google.com/storage/docs/uploading-objects#storage-upload-object-code-sample
 		Takes in a file object and uploads it to the user's GCP bucket.
@@ -44,19 +44,19 @@ class GCPStorage:
 		Returns:
 			bool: The return value. True for success, False otherwise.
 		"""
-		try:
-			blob = self.gcp_bucket.blob(file.relative_path)
+		# try:
+		blob = self.gcp_bucket.blob(relative_path)
 
-			# Upload temporary local file to bucket
-			blob.upload_from_filename(file.relative_path)
+		# Upload temporary local file to bucket
+		blob.upload_from_filename(relative_path)
 
-			print('File {} uploaded to bucket {}'.format(file.relative_path, self.bucket_name))
+		print('File {} uploaded to bucket {}'.format(relative_path, self.bucket_name))
 
-			return True
-		except:
-			return False
+		return True
+		# except:
+		# 	return False
 
-	def download(self, file):
+	def download(self, relative_path):
 		"""
 		TODO: Is there a way to just stream this and forward the results?
 		Source: https://cloud.google.com/storage/docs/downloading-objects#storage-download-object-python
@@ -69,14 +69,14 @@ class GCPStorage:
 			string: Path to a the file locally (we will download it to a temporary file)
 		"""
 		try:
-			blob = self.gcp_bucket.blob(file.relative_path)
+			blob = self.gcp_bucket.blob(relative_path)
 
 			# Check if temp folder exists, if not create it
 			if not os.path.exists(TEMP_DIR):
 				os.makedirs(TEMP_DIR)
 
 			# Create a hash of the bucket_name + relative_path to use as a temporary filename
-			filename = md5(bytes(self.bucket_name + file.relative_path, "utf-8")).hexdigest()
+			filename = md5(bytes(self.bucket_name + relative_path, "utf-8")).hexdigest()
 			pathToFile = "{}/{}".format(TEMP_DIR, filename)
 			fp = open(pathToFile, "wb+")
 			fileData = blob.download_to_file(fp)
@@ -101,7 +101,7 @@ class GCPStorage:
 		except:
 			return []
 
-	def delete(self, file):
+	def delete(self, relative_path):
 		"""
 		Source: https://cloud.google.com/storage/docs/deleting-objects
 		Takes in a file object and uses the information in it to download a file from the user's GCP bucket
@@ -113,11 +113,11 @@ class GCPStorage:
 			bool: The return value. True for success, False otherwise.
 		"""
 		try:
-			blob = self.gcp_bucket.blob(file.relative_path)
+			blob = self.gcp_bucket.blob(relative_path)
 
 			blob.delete()
 
-			print('Blob {} deleted'.format(file.relative_path))
+			print('Blob {} deleted'.format(relative_path))
 
 			return True
 		except:

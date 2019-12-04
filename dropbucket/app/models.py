@@ -13,9 +13,9 @@ class Bucket(models.Model):
 
 class Device(models.Model):
     user_id = models.ForeignKey(User, to_field='id', on_delete=models.CASCADE)
+    device_id = models.CharField(max_length=255)
     sync = models.BooleanField()
 
 class File(models.Model):
     user_id = models.ForeignKey(User, to_field='id', on_delete=models.CASCADE)
-    file = models.FileField(blank=False, storage=FileStorage())
     relative_path = models.CharField(max_length=4096)

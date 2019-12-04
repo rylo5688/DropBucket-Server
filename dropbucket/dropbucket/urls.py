@@ -29,7 +29,7 @@ router.register('devices', views.deviceView)
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('', include(router.urls)),
-    path('users/signup/', views.userSignUp.as_view()),
-    path('users/signin/', views.userSignIn.as_view()),
+    path('users/signup', views.userSignUp.as_view()),
+    path('users/signin', views.userSignIn.as_view()),
     path('users/<int:pk>/file/', views.fileDetail.as_view())
 ]
