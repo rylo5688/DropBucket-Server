@@ -18,25 +18,17 @@ class userSerializer(serializers.ModelSerializer):
 class bucketSerializer(serializers.ModelSerializer):
     class Meta:
         model = Bucket
-        fields = ['id','user_id', 'total_space', 'gcp_URL']
+        fields = ['user_id', 'total_space', 'gcp_URL']
 
 class deviceSerializer(serializers.ModelSerializer):
     class Meta:
         model = Device
-        fields = ['id','user_id', 'sync', 'device_id']
+        fields = ['user_id', 'sync', 'device_id']
 
-class fileWriteSerializer(serializers.ModelSerializer):
+class fileSerializer(serializers.ModelSerializer):
     class Meta:
         model = File
-        fields = ['id','user_id', 'file', 'relative_path']
-
-    def create(self, validated_data):
-        return File(**validated_data)
-
-class fileReadSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = File
-        fields = ['id','user_id', 'relative_path']
+        fields = ['user_id', 'relative_path']
 
     def create(self, validated_data):
         return File(**validated_data)
