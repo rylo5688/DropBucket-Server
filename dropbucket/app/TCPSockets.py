@@ -1,9 +1,9 @@
 import threading
+import json
 from socket import *
 from collections import defaultdict
 
 class TCPSockets:
-	__instance = None
 
 	class __TCPSockets:
 		MAX_BUFSIZ = 1024
@@ -29,6 +29,8 @@ class TCPSockets:
 			Thread function. This is an infinite loop to accept incoming socket connections.
 			All new connections are added to a shared dictionary of user to socket connection
 			mappings.
+
+			TODO: Some bug here with the thread not dieing for the hot reloading... Is it possible to have zombie threads lmao
 			"""
 			while True:
 				connSocket, addr = self.serverSocket.accept()
@@ -64,7 +66,8 @@ class TCPSockets:
 				try:
 					if dId != recentDeviceId:
 						# TODO: Send the file system status object
-						connSocket.send(bucketInfo.encode())
+						payload = json.dumps(bucketInfo, separators=(",",":"))
+						connSocket.send(payload)
 				except:
 					# Socket has closed
 					connRemove.append(i)
@@ -75,9 +78,12 @@ class TCPSockets:
 
 			self.__connLock.release()
 
+	__instance = __TCPSockets() # Eager instantiation
+
 	def __new__(cls):
 		"""
 		Singleton pattern
+		NOTE: This is the eager version
 		"""
 		if not cls.__instance:
 			cls.__instance = TCPSockets.__TCPSockets()

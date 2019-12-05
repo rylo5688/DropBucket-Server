@@ -1,5 +1,13 @@
 # DropBucket-Server
 
+## GCP Service Account Setup for Django
+* Goto the google console
+* Open navigation menu > IAM & admin > Service Accounts
+* Select `dropbucket-server@dropbucket.iam.gserviceaccount.com`
+* Click `Edit`
+* Create new key and download it as a JSON
+* Set environment variable: `export GOOGLE_APPLICATION_CREDENTIALS="<PATH TO JSON>"`
+
 ## Setting up environment
 * Create a python virtual environment `virtualenv <path to environment>`
 	* An example would be `virtualenv ~/.envs/dropbucket`
@@ -8,6 +16,12 @@
 
 * Setup database
 ```
+python3 dropbucket/manage.py makemigrations app
+python3 dropbucket/manage.py migrate
+```
+* Update database
+```
+rm -rf dropbucket/app/migrations dropbucket/db.sqlite3
 python3 dropbucket/manage.py makemigrations app
 python3 dropbucket/manage.py migrate
 ```
@@ -58,13 +72,32 @@ Sign in as a user
 {
 	"username":"name",
 	"password":"pass123",
+	"device_id":"device123"
 }
 ```
 
 **Response**
 ```json
 {
-	"message":"msg"
+	"message":"msg",
+    "fs_objects": [
+        {
+            "abc.png": "351a7f843149e7fda0f89c59cea2c799"
+        },
+        {
+            "dir/test.py": "806b50398b52ddeac079d8a69c39999c"
+        },
+        {
+            "handsomesquidward_2_1200x1200.png": "d40fa9705faca772df6a69dac851d11b"
+        },
+        {
+            "testfile.txt": "d41d8cd98f00b204e9800998ecf8427e"
+        }
+    ],
+    "directories": [
+        "dir/",
+        "dir/dir2/"
+    ],
 }
 ```
 
