@@ -134,10 +134,17 @@ class fileDetail(APIView):
                 # Create or access bucket for user and upload from temp file
                 g = GCPStorage.GCPStorage(u_id)
                 g.upload(filename)   
+
                 tmp.close()
 
             # Delete temp file
             os.remove(filename)
+
+
+            # Send sync requests to n-1 connected devices
+            bucketInfo = g.list()
+            sockets = TCPSockets.TCPSockets()
+            sockets.sendSyncRequests(u_id, device_id, bucketInfo)
 
             # Send sync requests to n-1 connected devices
             bucketInfo = g.list()
@@ -147,7 +154,6 @@ class fileDetail(APIView):
             return Response({"message": "File successfully uploaded"}, status=status.HTTP_201_CREATED)
         else:
             return Response(file_serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-
 
     # https://stackoverflow.com/questions/1156246/having-django-serve-downloadable-files
     # GET /file 
@@ -162,7 +168,7 @@ class fileDetail(APIView):
         request.data.update({"user_id": u_id, "relative_path": relative_path})
         file_serializer = fileSerializer(data=request.data)
 
-        if file_serializer.is_valid(): 
+        if file_serializer.is_valid():
 
             # Create or access bucket for user and download file
             g = GCPStorage.GCPStorage(u_id)
