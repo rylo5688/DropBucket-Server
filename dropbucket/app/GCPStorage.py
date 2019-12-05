@@ -68,22 +68,23 @@ class GCPStorage:
 		Returns:
 			string: Path to a the file locally (we will download it to a temporary file)
 		"""
-		try:
-			blob = self.gcp_bucket.blob(relative_path)
+		# try:
+		blob = self.gcp_bucket.blob(relative_path)
 
-			# Check if temp folder exists, if not create it
-			if not os.path.exists(TEMP_DIR):
-				os.makedirs(TEMP_DIR)
+		# Check if temp folder exists, if not create it
+		if not os.path.exists(TEMP_DIR):
+			os.makedirs(TEMP_DIR)
 
-			# Create a hash of the bucket_name + relative_path to use as a temporary filename
-			filename = md5(bytes(self.bucket_name + relative_path, "utf-8")).hexdigest()
-			pathToFile = "{}/{}".format(TEMP_DIR, filename)
-			fp = open(pathToFile, "wb+")
-			fileData = blob.download_to_file(fp)
+		# Create a hash of the bucket_name + relative_path to use as a temporary filename
+		filename = md5(bytes(self.bucket_name + relative_path, "utf-8")).hexdigest()
+		pathToFile = "{}/{}".format(TEMP_DIR, filename)
+		fp = open(pathToFile, "wb+")
+		fileData = blob.download_to_file(fp)
 
-			return pathToFile
-		except:
-			return ""
+		return pathToFile
+		# except:
+		# 	print('failed')
+		# 	return ""
 
 	def list(self):
 		"""

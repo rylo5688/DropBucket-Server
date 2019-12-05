@@ -1,5 +1,4 @@
 from django.db import models
-from . storage import FileStorage
 
 # Create your models here.
 class User(models.Model):

@@ -1,11 +1,12 @@
 from django.shortcuts import render
-from django.http import HttpResponse
+from django.http import HttpResponse, FileResponse
 from django.shortcuts import get_object_or_404
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status, viewsets
 from rest_framework.parsers import MultiPartParser, FormParser
 from django.contrib import auth
+from django.utils.encoding import smart_str
 from . models import User
 from . models import Bucket
 from . models import Device
@@ -65,7 +66,7 @@ class userSignIn(APIView):
                         device_serializer.save()
                 else:
                     print(device_serializer.errors)
-                    return Response({"message": "Incorrectly formatted request bodasdasdy."}, status=status.HTTP_400_BAD_REQUEST)
+                    return Response({"message": "Incorrectly formatted request body."}, status=status.HTTP_400_BAD_REQUEST)
 
                 # Give user session key set to expire in 1 day
                 request.session['device_id'] = device_id
@@ -123,7 +124,7 @@ class fileDetail(APIView):
                 for chunk in f.chunks():
                     tmp.write(chunk)
 
-                # Create or access bucket for user
+                # Create or access bucket for user and upload from temp file
                 g = GCPStorage.GCPStorage(u_id)
                 g.upload(filename)   
                 tmp.close()
@@ -131,10 +132,11 @@ class fileDetail(APIView):
             # Delete temp file
             os.remove(filename)  
 
-            return Response(file_serializer.data, status=status.HTTP_201_CREATED)
+            return Response({"message": "File successfully uploaded"}, status=status.HTTP_201_CREATED)
         else:
             return Response(file_serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
+    # https://stackoverflow.com/questions/1156246/having-django-serve-downloadable-files
     # GET /file 
     def get(self, request, *args, **kwargs):
         # Django magic for session associated with a device
@@ -146,14 +148,20 @@ class fileDetail(APIView):
         u_id = device.user_id.pk
         request.data.update({"user_id": u_id, "relative_path": relative_path})
         file_serializer = fileSerializer(data=request.data)
-
+        
         if file_serializer.is_valid(): 
 
-            # Create or access bucket for user
+            # Create or access bucket for user and download file
             g = GCPStorage.GCPStorage(u_id)
-            g.download(relative_path)
+            tempfile_path = g.download(relative_path)
 
-            return Response(file_serializer.data, status=status.HTTP_201_CREATED)
+            if os.path.exists(tempfile_path):
+                with open(tempfile_path, 'rb') as tempfile:
+                    print(tempfile.read())
+                    response = HttpResponse(tempfile.read(), content_type="application/force-download")
+                    response['Content-Disposition'] = 'inline; filename=' + os.path.basename(tempfile_path)
+                    response['X-Sendfile'] = smart_str(tempfile_path)
+            return response
         else:
             return Response(file_serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
@@ -172,14 +180,11 @@ class fileDetail(APIView):
 
         if file_serializer.is_valid(): 
 
-            # Create or access bucket for user
+            # Create or access bucket for user and delete file
             g = GCPStorage.GCPStorage(u_id)
             g.delete(relative_path)
 
-            # # Delete db entry
-            # File.objects.get(relative_path=relative_path).delete()
-
-            return Response(file_serializer.data, status=status.HTTP_201_CREATED)
+            return Response({"message": "File successfully deleted"}, status=status.HTTP_201_CREATED)
         else:
             return Response(file_serializer.errors, status=status.HTTP_400_BAD_REQUEST)
         return Response('messages')
