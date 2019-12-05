@@ -15,6 +15,7 @@ from . serializers import bucketSerializer
 from . serializers import deviceSerializer
 from . serializers import fileSerializer
 from . import GCPStorage
+from . import TCPSockets
 import bcrypt
 from shutil import copyfile
 import os
@@ -53,7 +54,7 @@ class userSignIn(APIView):
             match = bcrypt.checkpw(bytes(request.data["password"], "utf-8"), bytes(querySet[0].password, "utf-8"))
             if match:
                 u = User.objects.get(username=request.data['username'])
-                
+
                 # Update device table
                 device_id = request.data['device_id']
                 device_serializer = deviceSerializer(data={"user_id": u.id, "device_id": device_id, "sync": "true"})
@@ -71,7 +72,11 @@ class userSignIn(APIView):
                 request.session['device_id'] = device_id
                 request.session.set_expiry(86400)
 
-                return Response({"message": "Sign in successful"}, status=status.HTTP_200_OK)
+                # Get bucket info
+                g = GCPStorage.GCPStorage(u.pk)
+                bucketInfo = g.list()
+
+                return Response({ **bucketInfo, **{"message": "Sign in successful"} }, status=status.HTTP_200_OK)
             else:
                 return Response({"message": "Incorrect password"}, status=status.HTTP_409_CONFLICT)
 
@@ -115,7 +120,10 @@ class fileDetail(APIView):
         request.data.update({"user_id": u_id, "relative_path": filename})
         file_serializer = fileSerializer(data=request.data)
 
-        if file_serializer.is_valid(): 
+        if file_serializer.is_valid():
+
+            # Create or access bucket for user
+            g = GCPStorage.GCPStorage(u_id)
 
             # Copy request file to tempfile
             f = request.FILES['file']
@@ -123,23 +131,26 @@ class fileDetail(APIView):
                 for chunk in f.chunks():
                     tmp.write(chunk)
 
-                # Create or access bucket for user
-                g = GCPStorage.GCPStorage(u_id)
-                g.upload(filename)   
+                g.upload(filename)
                 tmp.close()
-           
+
             # Delete temp file
-            os.remove(filename)  
+            os.remove(filename)
+
+            # Send sync requests to n-1 connected devices
+            bucketInfo = g.list()
+            sockets = TCPSockets.TCPSockets()
+            sockets.sendSyncRequests(u_id, device_id, bucketInfo)
 
             return Response(file_serializer.data, status=status.HTTP_201_CREATED)
         else:
             return Response(file_serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
-    # GET /file 
+    # GET /file
     def get(self, request, *args, **kwargs):
         # Django magic for session associated with a device
         device_id = request.session['device_id']
-        
+
         # Append user_id and relative path to request data to be serialized
         relative_path = request.GET.get('relative_path')
         device = Device.objects.get(device_id=device_id)
@@ -147,7 +158,7 @@ class fileDetail(APIView):
         request.data.update({"user_id": u_id, "relative_path": relative_path})
         file_serializer = fileSerializer(data=request.data)
 
-        if file_serializer.is_valid(): 
+        if file_serializer.is_valid():
 
             # Create or access bucket for user
             g = GCPStorage.GCPStorage(u_id)
@@ -161,16 +172,16 @@ class fileDetail(APIView):
     def delete(self, request, *args, **kwargs):
         # Django magic for session associated with a device
         device_id = request.session['device_id']
-        
+
         # Append user_id and relative path to request data to be serialized
         relative_path = request.GET.get('relative_path')
         device = Device.objects.get(device_id=device_id)
         u_id = device.user_id.pk
-       
+
         file_data = {"user_id": u_id, "relative_path": relative_path}
         file_serializer = fileSerializer(data=file_data)
 
-        if file_serializer.is_valid(): 
+        if file_serializer.is_valid():
 
             # Create or access bucket for user
             g = GCPStorage.GCPStorage(u_id)
