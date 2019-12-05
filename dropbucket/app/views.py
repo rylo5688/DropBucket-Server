@@ -182,7 +182,7 @@ class fileDetail(APIView):
                     response['X-Sendfile'] = smart_str(tempfile_path)
 
             # # Delete temp file
-            # os.remove(tempfile_path) 
+            os.remove(tempfile_path) 
             
             return response
         else:
