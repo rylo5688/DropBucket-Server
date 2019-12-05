@@ -55,6 +55,9 @@ coverage.xml
 *.log
 local_settings.py
 db.sqlite3
+cache/
+dropbucket/app/migrations/
+
 
 # Flask stuff:
 instance/

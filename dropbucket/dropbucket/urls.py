@@ -31,5 +31,5 @@ urlpatterns = [
     path('', include(router.urls)),
     path('users/signup', views.userSignUp.as_view()),
     path('users/signin', views.userSignIn.as_view()),
-    path('users/<int:pk>/file/', views.fileDetail.as_view())
+    path('file/', views.fileDetail.as_view())
 ]
