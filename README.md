@@ -1,5 +1,13 @@
 # DropBucket-Server
 
+## GCP Service Account Setup for Django
+* Goto the google console
+* Open navigation menu > IAM & admin > Service Accounts
+* Select `dropbucket-server@dropbucket.iam.gserviceaccount.com`
+* Click `Edit`
+* Create new key and download it as a JSON
+* Set environment variable: `export GOOGLE_APPLICATION_CREDENTIALS="<PATH TO JSON>"`
+
 ## Setting up environment
 * Create a python virtual environment `virtualenv <path to environment>`
 	* An example would be `virtualenv ~/.envs/dropbucket`
