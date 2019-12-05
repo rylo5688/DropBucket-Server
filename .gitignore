@@ -109,3 +109,6 @@ venv.bak/
 
 # vscode stuff
 .vscode/
+
+# django stuff
+dropbucket/app/migrations/

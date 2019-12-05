@@ -1,24 +1,25 @@
 # TODO: Change prints to use a logger
 from google.cloud import storage
 from hashlib import md5
+import base64
 import os
 
 TEMP_DIR = "cache"
 
 class GCPStorage:
-	def __init__(self, username):
+	def __init__(self, user_id):
 		"""
 		Source: https://cloud.google.com/storage/docs/creating-buckets#storage-create-bucket-code_samples
-		Takes in a username and creates a GCP bucket if one doesn't already exist.
-		Bucket naming format is `dropbucket-<username>`
+		Takes in a user_id and creates a GCP bucket if one doesn't already exist.
+		Bucket naming format is `dropbucket-<user_id>`
 
 		Args:
-			username (str): Username of current logged in account
+			user_id (str): user_id of current logged in account
 		"""
 		self.storage_client = storage.Client()
 
-		# Buckets are in a global namespace, so we will make them unique by using the format dropbucket-<username>
-		self.bucket_name = "dropbucket-{}".format(username)
+		# Buckets are in a global namespace, so we will make them unique by using the format dropbucket-<user_id>
+		self.bucket_name = "dropbucket-{}".format(user_id)
 
 		if self.storage_client.lookup_bucket(self.bucket_name) == None:
 			# Bucket for user doesn't exist so create one
@@ -90,14 +91,26 @@ class GCPStorage:
 		Source: https://cloud.google.com/storage/docs/listing-objects
 		Returns a list of files contained in the user's bucket
 
-		Args:
-
 		Returns:
 			list: The return value. A list of files (relative paths included) contained in the bucket.
 		"""
 		try:
 			blobs = self.storage_client.list_blobs(self.bucket_name)
-			return [blob.name for blob in blobs]
+			ret = { "fs_objects": [], "directories": set() }
+			for blob in blobs:
+				# Extract split between filename and relative_path
+				slashIdx = blob.name.rfind('/')
+
+				if slashIdx >= 0:
+					# Add to set of relative_paths
+					ret["directories"].add(blob.name[:slashIdx+1])
+				if slashIdx != len(blob.name)-1:
+					# Add to list of files
+					ret["fs_objects"].append({ blob.name : base64.b64decode(blob.md5_hash).hex() })
+
+			# Convert set to list
+			ret["directories"] = sorted(list(ret["directories"]), key=lambda x: len(x))
+			return ret
 		except:
 			return []
 
