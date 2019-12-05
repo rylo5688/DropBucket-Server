@@ -161,6 +161,10 @@ class fileDetail(APIView):
                     response = HttpResponse(tempfile.read(), content_type="application/force-download")
                     response['Content-Disposition'] = 'inline; filename=' + os.path.basename(tempfile_path)
                     response['X-Sendfile'] = smart_str(tempfile_path)
+
+            # Delete temp file
+            os.remove(tempfile_path) 
+            
             return response
         else:
             return Response(file_serializer.errors, status=status.HTTP_400_BAD_REQUEST)
