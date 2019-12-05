@@ -115,7 +115,7 @@ class fileDetail(APIView):
 
         # Append user id to request data
         device = Device.objects.get(device_id=device_id)
-        u_id = device.pk
+        u_id = device.user_id.pk
         filename = request.FILES['file'].name
         request.data.update({"user_id": u_id, "relative_path": filename})
         file_serializer = fileSerializer(data=request.data)
@@ -154,7 +154,7 @@ class fileDetail(APIView):
         # Append user_id and relative path to request data to be serialized
         relative_path = request.GET.get('relative_path')
         device = Device.objects.get(device_id=device_id)
-        u_id = device.pk
+        u_id = device.user_id.pk
         request.data.update({"user_id": u_id, "relative_path": relative_path})
         file_serializer = fileSerializer(data=request.data)
 
@@ -176,7 +176,7 @@ class fileDetail(APIView):
         # Append user_id and relative path to request data to be serialized
         relative_path = request.GET.get('relative_path')
         device = Device.objects.get(device_id=device_id)
-        u_id = device.pk
+        u_id = device.user_id.pk
 
         file_data = {"user_id": u_id, "relative_path": relative_path}
         file_serializer = fileSerializer(data=file_data)
