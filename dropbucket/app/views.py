@@ -171,13 +171,18 @@ class fileDetail(APIView):
             tempfile_path = g.download(relative_path)
 
             if os.path.exists(tempfile_path):
-                with open(tempfile_path, 'r', encoding='utf-8', errors='ignore') as tempfile:
-                    read_bytes = tempfile.read()
+                # with open(tempfile_path, 'r', encoding='utf-8', errors='ignore') as tempfile:
+                #     read_bytes = tempfile.read()
+                with open(tempfile_path, 'rb') as tempfile:
+                    response = HttpResponse(tempfile.read(), content_type="application/force-download")
+                    response['Content-Disposition'] = 'inline; filename=' + os.path.basename(tempfile_path)
+                    response['X-Sendfile'] = smart_str(tempfile_path)
 
             # Delete temp file
             os.remove(tempfile_path)
 
-            return Response({"data": read_bytes}, status=status.HTTP_200_OK)
+            return response
+            # return Response({"data": read_bytes}, status=status.HTTP_200_OK)
         else:
             return Response(file_serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
