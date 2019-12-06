@@ -132,20 +132,15 @@ class fileDetail(APIView):
                 for chunk in f.chunks():
                     tmp.write(chunk)
 
+                tmp.close()
                 # Create or access bucket for user and upload from temp file
                 g = GCPStorage.GCPStorage(u_id)
-                g.upload(filename)   
-
-                tmp.close()
+                
+                g.upload(filename)     
 
             # Delete temp file
             os.remove(filename)
 
-
-            # Send sync requests to n-1 connected devices
-            bucketInfo = g.list()
-            sockets = TCPSockets.TCPSockets()
-            sockets.sendSyncRequests(u_id, device_id, bucketInfo)
 
             # Send sync requests to n-1 connected devices
             bucketInfo = g.list()
