@@ -37,7 +37,7 @@ class TCPSockets:
 				connInfo = connSocket.recv(self.MAX_BUFSIZ).decode()
 				infoList = connInfo.split(",")
 
-				# Expect format `userId,deviceId`
+				# Expect format `username,deviceId`
 				if len(infoList) == 2:
 					# Correct format so add this to the list of connections
 					self.__connLock.acquire(True, -1)
@@ -45,36 +45,39 @@ class TCPSockets:
 					self.__connLock.release()
 
 		# TODO: This should be a thread function
-		def sendSyncRequests(self, userId, recentDeviceId, bucketInfo):
+		def sendSyncRequests(self, username, recentDeviceId, bucketInfo):
 			"""
 			Thread function. Sends a sync request to all connected devices for a user.
 			However, the one device that sent the request to cause a need for a sync
 			will not be a sent a sync message.
 
 			Args:
-				userId: string
+				username: string
 				recentDeviceId: string
 				bucketInfo: string, JSON string of the current file system state
 			"""
 
 			# Lock the Connections until we go through updating this list
 			self.__connLock.acquire(True, -1)
-
 			# Send sync requests to user devices
 			connRemove = []
-			for i, (dId, connSocket, addr) in enumerate(self.__connections[userId]):
+			for i, connList in enumerate(self.__connections[username]):
+				(dId, connSocket, addr) = connList
 				try:
 					if dId != recentDeviceId:
 						# TODO: Send the file system status object
 						payload = json.dumps(bucketInfo, separators=(",",":"))
-						connSocket.send(payload)
+						connSocket.send(payload.encode())
 				except:
+					# TODO: send just puts the data on a buffer and then moves on
+					# so we cannot expect an error to be thrown immediately
 					# Socket has closed
+					print("CLOSING")
 					connRemove.append(i)
 
 			# Removing all socket connections that are closed
 			for i in sorted(connRemove, reverse=True):
-				del self.__connections[userId][i]
+				del self.__connections[username][i]
 
 			self.__connLock.release()
 
