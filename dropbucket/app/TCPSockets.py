@@ -3,6 +3,7 @@ import json
 from socket import *
 from collections import defaultdict
 
+# PATTERN USED: Singleton eager instantiation - allows us to tell devices that they have outdated information
 class TCPSockets:
 
 	class __TCPSockets:

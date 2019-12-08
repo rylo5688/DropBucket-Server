@@ -6,6 +6,7 @@ import os
 
 TEMP_DIR = "cache"
 
+# PATTERN USED: Facade pattern - simple interface to interact with the GCP Buckets
 class GCPStorage:
 	def __init__(self, user_id):
 		"""
@@ -57,7 +58,7 @@ class GCPStorage:
 		# except:
 		# 	return False
 
-	def download(self, relative_path):
+	def download(self, relative_path, device_id):
 		"""
 		TODO: Is there a way to just stream this and forward the results?
 		Source: https://cloud.google.com/storage/docs/downloading-objects#storage-download-object-python
@@ -77,7 +78,7 @@ class GCPStorage:
 			os.makedirs(TEMP_DIR)
 
 		# Create a hash of the bucket_name + relative_path to use as a temporary filename
-		filename = md5(bytes(self.bucket_name + relative_path, "utf-8")).hexdigest()
+		filename = md5(bytes(self.bucket_name + relative_path + device_id, "utf-8")).hexdigest()
 		pathToFile = "{}/{}".format(TEMP_DIR, filename)
 		fp = open(pathToFile, "wb+")
 		fileData = blob.download_to_file(fp)

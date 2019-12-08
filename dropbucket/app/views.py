@@ -168,7 +168,7 @@ class fileDetail(APIView):
 
             # Create or access bucket for user and download file
             g = GCPStorage.GCPStorage(u_id)
-            tempfile_path = g.download(relative_path)
+            tempfile_path = g.download(relative_path, device_id)
 
             if os.path.exists(tempfile_path):
                 # with open(tempfile_path, 'r', encoding='utf-8', errors='ignore') as tempfile:
