@@ -206,6 +206,11 @@ class fileDetail(APIView):
             g = GCPStorage.GCPStorage(u_id)
             g.delete(relative_path)
 
+            # Send sync requests to n-1 connected devices
+            bucketInfo = g.list()
+            sockets = TCPSockets.TCPSockets()
+            sockets.sendSyncRequests(User.objects.get(id=u_id).username, device_id, bucketInfo)
+
             return Response({"message": "File successfully deleted"}, status=status.HTTP_201_CREATED)
         else:
             return Response(file_serializer.errors, status=status.HTTP_400_BAD_REQUEST)
