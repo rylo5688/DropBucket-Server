@@ -1,5 +1,15 @@
 # DropBucket-Server
 
+## Deploying to compute engine
+* Copy files `gcloud compute scp --project="dropbucket" --zone="us-central1-a" --recurse . django-server:~/`
+* SSH into server `gcloud beta compute --project "dropbucket" ssh --zone "us-central1-a" "django-server"`
+* Run server `nohup python3 dropbucket/manage.py runserver 0.0.0.0:8000 &`
+    * NOTE: You need to kill the server if it is currently running
+    ```
+    ps -ef | grep runserver
+    kill <pid>
+    ```
+
 ## GCP Service Account Setup for Django
 * Goto the google console
 * Open navigation menu > IAM & admin > Service Accounts
