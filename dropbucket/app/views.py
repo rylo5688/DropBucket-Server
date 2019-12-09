@@ -7,21 +7,15 @@ from rest_framework import status, viewsets
 from rest_framework.parsers import MultiPartParser, FormParser
 from django.contrib import auth
 from django.utils.encoding import smart_str
-from . models import User
-from . models import Bucket
-from . models import Device
-from . models import File
-from . serializers import userSerializer
-from . serializers import bucketSerializer
-from . serializers import deviceSerializer
-from . serializers import fileSerializer
+from . models import User, Bucket, Device, File
+from . serializers import userSerializer, bucketSerializer, deviceSerializer, fileSerializer
 from . import GCPStorage
 from . import TCPSockets
 import bcrypt
 import os
 import io
 
-# Create your views here.
+# Handles user sign up, adds entry to DB 
 class userSignUp(APIView):
     def post(self, request):
         # TODO: Need to make this HTTPS so we aren't sending plaintext passwords
@@ -39,6 +33,7 @@ class userSignUp(APIView):
 
         return Response({"message": "Incorrectly formatted request body."}, status=status.HTTP_400_BAD_REQUEST)
 
+# Handles user sign in and associates a session with a given device
 class userSignIn(APIView):
     def post(self, request):
         # TODO: Need this to contain device information so we can add it to the database
@@ -91,20 +86,23 @@ class userSignIn(APIView):
 #         pass
 #     return HttpResponse("You're logged out.")
 
+# Default GET, POST, and DELETE methods for User
 class userView(viewsets.ModelViewSet):
     queryset = User.objects.all()
     serializer_class = userSerializer
 
+# Default GET, POST, and DELETE methods for Bucket
 class bucketView(viewsets.ModelViewSet):
     queryset =Bucket.objects.all()
     serializer_class = bucketSerializer
 
+# Default GET, POST, and DELETE methods for Device
 class deviceView(viewsets.ModelViewSet):
     queryset = Device.objects.all()
     serializer_class = deviceSerializer
 
 
-# could break these out into fileUpload, fileDownload, and fileDelete
+# GET, POST, and DELETE methods for files
 class fileDetail(APIView):
 
     # POST /file
@@ -211,7 +209,7 @@ class fileDetail(APIView):
             sockets = TCPSockets.TCPSockets()
             sockets.sendSyncRequests(User.objects.get(id=u_id).username, device_id, bucketInfo)
 
-            return Response({"message": "File successfully deleted"}, status=status.HTTP_201_CREATED)
+            return Response({"message": "File successfully deleted"}, status=status.HTTP_200_OK)
         else:
             return Response(file_serializer.errors, status=status.HTTP_400_BAD_REQUEST)
         return Response('messages')

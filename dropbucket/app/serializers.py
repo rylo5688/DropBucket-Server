@@ -5,6 +5,8 @@ from . models import Device
 from . models import File
 import bcrypt
 
+# http://www.tomchristie.com/rest-framework-2-docs/api-guide/serializers
+# Serializers allow models and querysets to be converted to native Python datatypes
 class userSerializer(serializers.ModelSerializer):
     class Meta:
         model = User

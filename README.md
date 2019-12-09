@@ -117,6 +117,72 @@ Sign in as a user
 * `400`: Incorrectly formatted body
 * `409`: Username or password is incorrect
 
+### POST `/file/`
+
+Upload a file
+
+**POST body**
+A file object along with
+```json
+{
+	"device_id": "device123_45",
+	"relative_path": "file.txt",
+}
+```
+
+**Response**
+```json
+{
+	"message":"msg"
+}
+```
+
+**Status Code**
+* `201`: Successfully posted file
+* `400`: Incorrectly formatted body
+
+### GET `/file/`
+
+Download a file
+
+**POST body**
+```json
+{
+	"relative_path": "file.txt",
+}
+```
+
+**Response**
+A force-downloaded file.
+
+**Status Code**
+* `200`: Successfully downloaded file
+* `400`: Incorrectly formatted body
+
+
+### DELETE `/file/`
+
+Delete a file
+
+**POST body**
+```json
+{
+	"relative_path": "file.txt",
+}
+```
+
+**Response**
+```json
+{
+	"message":"msg"
+}
+```
+
+**Status Code**
+* `200`: Successfully deleted file
+* `400`: Incorrectly formatted body
+* `409`: User already has an account
+
 
 ## Query the database manually
 * Command line: `sqlite3 dropbucket/db.sqlite3`
