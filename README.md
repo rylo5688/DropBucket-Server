@@ -1,4 +1,8 @@
 # DropBucket-Server
+## Team members
+* Thomas Alder
+* Matthew Donovan
+* Ryan Loi
 
 ## Deploying to compute engine
 * Copy files `gcloud compute scp --project="dropbucket" --zone="us-central1-a" --recurse . django-server:~/`
