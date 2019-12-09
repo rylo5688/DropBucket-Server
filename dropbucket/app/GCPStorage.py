@@ -7,6 +7,7 @@ import os
 TEMP_DIR = "cache"
 
 # PATTERN USED: Facade pattern - simple interface to interact with the GCP Buckets
+# Source: https://python-3-patterns-idioms-test.readthedocs.io/en/latest/Singleton.html
 class GCPStorage:
 	def __init__(self, user_id):
 		"""
