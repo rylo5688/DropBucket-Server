@@ -121,12 +121,14 @@ Sign in as a user
 
 Upload a file
 
-**POST body**
+**POST body**<br/>
+
 A file object along with
+
 ```json
 {
 	"device_id": "device123_45",
-	"relative_path": "file.txt",
+	"relative_path": "file.txt"
 }
 ```
 
@@ -148,7 +150,7 @@ Download a file
 **POST body**
 ```json
 {
-	"relative_path": "file.txt",
+	"relative_path": "file.txt"
 }
 ```
 
