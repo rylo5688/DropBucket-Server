@@ -4,6 +4,7 @@ from socket import *
 from collections import defaultdict
 
 # PATTERN USED: Singleton eager instantiation - allows us to tell devices that they have outdated information
+# Source: https://python-3-patterns-idioms-test.readthedocs.io/en/latest/Singleton.html
 class TCPSockets:
 
 	class __TCPSockets:
